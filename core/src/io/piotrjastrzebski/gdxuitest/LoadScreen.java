@@ -5,10 +5,12 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.SkinLoader;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ObjectMap;
 
@@ -23,8 +25,12 @@ public class LoadScreen extends BaseScreen {
 	public LoadScreen(UIApp app) {
 		super(app);
 		assets = app.assets;
-
-
+		// we need to remove the font we added manually, or it will get disposed twice and cause a crash
+		if (assets.isLoaded(SKIN, Skin.class)) {
+			Skin skin = assets.get(SKIN, Skin.class);
+			skin.remove("default-font", BitmapFont.class);
+		}
+		assets.clear();
 		{
 			// we are using Kumar One font
 			FileHandleResolver resolver = assets.getFileHandleResolver();
@@ -35,7 +41,7 @@ public class LoadScreen extends BaseScreen {
 			parameter.fontParameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
 			// pick a size based on resolution
 			float h = Gdx.graphics.getBackBufferWidth() > Gdx.graphics.getBackBufferHeight()?Gdx.graphics.getBackBufferHeight():Gdx.graphics.getBackBufferWidth();
-			parameter.fontParameters.size = (int)(h/16);
+			parameter.fontParameters.size = MathUtils.clamp((int)(h/16), 12, 96);
 			parameter.fontParameters.characters = FreeTypeFontGenerator.DEFAULT_CHARS;
 			assets.load(FONT, BitmapFont.class, parameter);
 		}
@@ -48,7 +54,7 @@ public class LoadScreen extends BaseScreen {
 		if (assets.update()) {
 			if (fontGenerated) {
 				// we probably dont need this to hang around
-				assets.unload(FONT+".gen");
+//				assets.unload(FONT+".gen");
 				app.setScreen(new GameScreen(app));
 			} else {
 				fontGenerated = true;
