@@ -7,19 +7,22 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.ResolutionFileResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.ResolutionFileResolver.Resolution;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
 public class UIApp extends Game {
+	private final static String TAG = UIApp.class.getSimpleName();
+
 	SpriteBatch batch;
 	AssetManager assets;
 	Resolution[] resolutions;
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		Resolution[] resolutions = new Resolution[]{
+		resolutions = new Resolution[]{
 				new Resolution(720, 1280, "x1"), // ie default
 				new Resolution(1080, 1920, "x2"),
 				new Resolution(1440, 2560, "x4"),
@@ -27,7 +30,6 @@ public class UIApp extends Game {
 		ResolutionFileResolver resolver = new ResolutionFileResolver(new InternalFileHandleResolver(), resolutions);
 		assets = new AssetManager(resolver);
 		Texture.setAssetManager(assets);
-		setScreen(new LoadScreen(this));
 	}
 
 	float reload;
@@ -38,15 +40,20 @@ public class UIApp extends Game {
 		// this mostly affects macos, as resize events are continuous there
 		if (Gdx.app.getType() == Application.ApplicationType.Desktop) {
 			reload = .2f;
+		} else {
+			reload = 1/60f;
 		}
 		super.resize(width, height);
 	}
 
 	@Override
 	public void render() {
+		Gdx.gl.glClearColor(0f, 0f, 0f, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		if (reload > 0) {
 			reload -= Gdx.graphics.getDeltaTime();
 			if (reload <= 0) {
+				Gdx.app.log(TAG, "Selected " + ResolutionFileResolver.choose(resolutions).folder + " (" + Gdx.graphics.getWidth() + "x" + Gdx.graphics.getHeight()+")");
 				setScreen(new LoadScreen(this));
 			}
 		}
