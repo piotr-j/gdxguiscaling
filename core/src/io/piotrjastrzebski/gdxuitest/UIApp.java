@@ -19,6 +19,8 @@ public class UIApp extends Game {
 	SpriteBatch batch;
 	AssetManager assets;
 	Resolution[] resolutions;
+	Resolution selected;
+	float resAlpha;
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
@@ -30,6 +32,16 @@ public class UIApp extends Game {
 		ResolutionFileResolver resolver = new ResolutionFileResolver(new InternalFileHandleResolver(), resolutions);
 		assets = new AssetManager(resolver);
 		Texture.setAssetManager(assets);
+		select();
+	}
+
+	private void select() {
+		Resolution next = ResolutionFileResolver.choose(resolutions);
+		if (next != selected) {
+			selected = next;
+			Gdx.app.log(TAG, "Selected " + selected.folder + " (" + Gdx.graphics.getWidth() + "x" + Gdx.graphics.getHeight() + ")");
+			setScreen(new LoadScreen(this));
+		}
 	}
 
 	float reload;
@@ -53,8 +65,7 @@ public class UIApp extends Game {
 		if (reload > 0) {
 			reload -= Gdx.graphics.getDeltaTime();
 			if (reload <= 0) {
-				Gdx.app.log(TAG, "Selected " + ResolutionFileResolver.choose(resolutions).folder + " (" + Gdx.graphics.getWidth() + "x" + Gdx.graphics.getHeight()+")");
-				setScreen(new LoadScreen(this));
+				select();
 			}
 		}
 		super.render();
