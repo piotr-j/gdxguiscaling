@@ -4,9 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.esotericsoftware.spine.*;
 
 /**
  * Created by PiotrJ on 31/05/2017.
@@ -17,6 +20,11 @@ public class GameScreen extends BaseScreen {
 	Stage stage;
 	Table root;
 	Skin skin;
+
+	SkeletonRenderer<SpriteBatch> renderer;
+	Skeleton skeleton;
+	AnimationState state;
+
 	public GameScreen(UIApp app) {
 		super(app);
 		camera = new OrthographicCamera();
@@ -27,7 +35,7 @@ public class GameScreen extends BaseScreen {
 		root.setFillParent(true);
 		stage.addActor(root);
 
-		skin = app.assets.get(LoadScreen.SKIN);
+		skin = app.assets.get(LoadScreen.SKIN, Skin.class);
 
 		Label label = new Label("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890", skin);
 		label.setWrap(true);
@@ -35,14 +43,33 @@ public class GameScreen extends BaseScreen {
 		root.row();
 		TextButton button = new TextButton("Click me!", skin, "toggle");
 		root.add(button);
+
+		renderer = new SkeletonRenderer<>();
+		SkeletonData skeletonData = app.assets.get(LoadScreen.SPINE, SkeletonData.class);
+		skeleton = new Skeleton(skeletonData);
+
+		AnimationStateData animationStateData = new AnimationStateData(skeletonData);
+		state = new AnimationState(animationStateData);
+		state.setAnimation(0, "animation", true);
 	}
 
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClearColor(.3f, .5f, .3f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		skeleton.setPosition(viewport.getWorldWidth()/2, viewport.getWorldHeight()/5);
+		state.update(delta);
+		state.apply(skeleton);
+		skeleton.updateWorldTransform();
+		app.batch.setProjectionMatrix(camera.combined);
+		app.batch.begin();
+		renderer.draw(app.batch, skeleton);
+		app.batch.end();
+
 		stage.act();
 		stage.draw();
+
 	}
 
 	@Override
