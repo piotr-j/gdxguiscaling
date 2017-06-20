@@ -56,10 +56,11 @@ public class LoadScreen extends BaseScreen {
 			size = MathUtils.clamp((int)(h/16), 12, 96);
 
 			FileHandle cache = cache("/cache/font-" + size + ".fnt");
+			assets.setLoader(BitmapFont.class, ".fnt", new BitmapFontLoader(cacheResolver()));
+			assets.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
 			if (cache.exists()) {
 				Gdx.app.log(TAG, "Loading cached font " + cache);
 				// need to use external file
-				assets.setLoader(BitmapFont.class, new BitmapFontLoader(cacheResolver()));
 				generateFont = false;
 				AssetDescriptor<BitmapFont> ad = new AssetDescriptor<>(cache, BitmapFont.class);
 				fontFileName = ad.fileName;
@@ -67,7 +68,6 @@ public class LoadScreen extends BaseScreen {
 			} else {
 				Gdx.app.log(TAG, "Generating font");
 				assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
-				assets.setLoader(BitmapFont.class, new FreetypeFontLoader(resolver));
 				parameter = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 				parameter.fontFileName = fontFileName = FONT;
 				parameter.fontParameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
