@@ -34,7 +34,7 @@ public class LoadScreen extends BaseScreen {
 	public static final String FONT = "ui/default.ttf";
 	public static final String SPINE = "spine/skeleton.json";
 	private String fontFileName;
-	private final int size;
+	private final float size;
 	boolean generateFont = true;
 	boolean fontGenerated = false;
 	AssetManager assets;
@@ -53,7 +53,7 @@ public class LoadScreen extends BaseScreen {
 			FileHandleResolver resolver = assets.getFileHandleResolver();
 			// pick a size based on resolution
 			float h = Gdx.graphics.getBackBufferWidth() > Gdx.graphics.getBackBufferHeight()?Gdx.graphics.getBackBufferHeight():Gdx.graphics.getBackBufferWidth();
-			size = MathUtils.clamp((int)(h/16), 12, 96);
+			size = MathUtils.clamp(h/16, 12, 96);
 
 			FileHandle cache = cache("/cache/font-" + size + ".fnt");
 			assets.setLoader(BitmapFont.class, ".fnt", new BitmapFontLoader(cacheResolver()));
@@ -71,8 +71,10 @@ public class LoadScreen extends BaseScreen {
 				parameter = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 				parameter.fontFileName = fontFileName = FONT;
 				parameter.fontParameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
-				parameter.fontParameters.size = size;
+				parameter.fontParameters.size = (int) size;
 				parameter.fontParameters.characters = FreeTypeFontGenerator.DEFAULT_CHARS;
+				parameter.fontParameters.shadowOffsetX = Math.max((int) (size/16), 1);
+				parameter.fontParameters.shadowOffsetY = Math.max((int) (size/16), 1);
 				// thats a lie, but we will get a reference to packer
 				parameter.fontParameters.incremental = true;
 				assets.load(FONT, BitmapFont.class, parameter);
